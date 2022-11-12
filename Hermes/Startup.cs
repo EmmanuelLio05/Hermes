@@ -31,8 +31,10 @@ namespace Hermes {
             services.AddSingleton<MqttService>();
             services.AddHostedMqttServerWithServices(options => {
                 var s = options.ServiceProvider.GetRequiredService<MqttService>();
-                
-            })
+                s.ConfigureMqttServerOptions(options);
+            });
+            services.AddMqttConnectionHandler();
+            services.AddMqttWebSocketServerAdapter();
             services.AddSwaggerGen(c => {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Hermes", Version = "v1" });
             });
@@ -61,7 +63,8 @@ namespace Hermes {
                 endpoints.MapControllers();
             });
 
-            app.UseMqttServer(server => { });
+            app.UseMqttEndpoint();
+            app.UseMqttServer(server => app.ApplicationServices.GetRequiredService<MqttService>().ConfigureMqttServer(server));
         }
     }
 }
